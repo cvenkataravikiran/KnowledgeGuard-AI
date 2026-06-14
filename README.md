@@ -16,7 +16,7 @@
 
 **KnowledgeGuard AI** is an intelligent knowledge management platform designed to help organizations identify, analyze, and mitigate risks associated with knowledge loss when employees leave. Built as a capstone project, it leverages AI, natural language processing, and graph theory to automatically map organizational knowledge dependencies and provide actionable insights.
 
-🚀 **Live Demo:** []
+🚀 **Live Demo:** [https://knowledgeguard-ai.streamlit.app/]
 
 
 ## 💡 Problem Statement
