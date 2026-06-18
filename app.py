@@ -17,6 +17,10 @@ st.set_page_config(
 # Initialize database
 init_db()
 
+# Check if API key is configured
+if not config.GROQ_API_KEY:
+    st.warning("⚠️ GROQ_API_KEY not configured. AI features will be limited. Please add it in Streamlit secrets (Settings → Secrets) or .env file.")
+
 # Initialize session state
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False

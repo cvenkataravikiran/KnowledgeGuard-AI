@@ -9,11 +9,19 @@ class AIAnalyzer:
     """AI analyzer using Groq API for knowledge extraction and analysis"""
     
     def __init__(self):
-        if not config.GROQ_API_KEY:
-            raise ValueError("GROQ_API_KEY is not set in environment variables")
-        
-        self.client = Groq(api_key=config.GROQ_API_KEY)
+        self.api_key = config.GROQ_API_KEY
         self.model = config.GROQ_MODEL
+        
+        if self.api_key:
+            self.client = Groq(api_key=self.api_key)
+        else:
+            self.client = None
+            print("⚠️ WARNING: GROQ_API_KEY not set. AI features will be limited.")
+    
+    def _check_client(self):
+        """Check if client is available"""
+        if not self.client:
+            raise ValueError("GROQ_API_KEY is not configured. Please add it in Streamlit Cloud secrets or .env file")
     
     def extract_entities(self, text: str) -> Dict[str, List[str]]:
         """
@@ -22,6 +30,18 @@ class AIAnalyzer:
         Returns:
             Dictionary with entity types as keys and lists of entities as values
         """
+        # Return empty entities if no API key
+        if not self.client:
+            return {
+                "employees": [],
+                "departments": [],
+                "systems": [],
+                "projects": [],
+                "processes": [],
+                "clients": [],
+                "technologies": []
+            }
+        
         prompt = f"""Analyze the following text and extract relevant entities.
 
 Text:
@@ -82,6 +102,9 @@ Only include entities that are explicitly mentioned or clearly implied. Return v
     
     def analyze_documentation_gaps(self, context: str) -> List[Dict]:
         """Identify documentation gaps"""
+        if not self.client:
+            return []
+        
         prompt = f"""Analyze the following organizational context and identify documentation gaps.
 
 Context:
@@ -128,6 +151,20 @@ Return valid JSON only."""
     
     def generate_risk_assessment(self, employee_name: str, context: str) -> Dict:
         """Generate risk assessment for employee exit scenario"""
+        if not self.client:
+            return {
+                "risk_score": 0,
+                "risk_level": "unknown",
+                "affected_systems": [],
+                "affected_projects": [],
+                "affected_processes": [],
+                "knowledge_coverage": 0,
+                "documented_areas": [],
+                "undocumented_areas": [],
+                "recovery_estimate_days": 0,
+                "recommendations": ["Please configure GROQ_API_KEY to enable AI features"]
+            }
+        
         prompt = f"""Analyze the impact if employee '{employee_name}' leaves the organization.
 
 Context:
@@ -193,6 +230,13 @@ Return valid JSON only."""
         Returns:
             Dictionary with answer, confidence, and sources
         """
+        if not self.client:
+            return {
+                "answer": "AI Assistant is not available. Please configure GROQ_API_KEY in Streamlit secrets.",
+                "confidence": 0.0,
+                "sources_used": 0
+            }
+        
         # Combine context
         context = "\n\n".join(context_documents[:5])  # Use top 5 documents
         

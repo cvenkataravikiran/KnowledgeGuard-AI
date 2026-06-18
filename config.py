@@ -14,11 +14,21 @@ except Exception:
 # Load environment variables
 load_dotenv()
 
+# Try to load from Streamlit secrets if available
+try:
+    import streamlit as st
+    if hasattr(st, 'secrets'):
+        # Streamlit Cloud deployment
+        GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
+    else:
+        GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+except:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
 # Base Directory
 BASE_DIR = Path(__file__).resolve().parent
 
 # API Configuration
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = "llama-3.3-70b-versatile"  # Updated to current model
 
 # Database Configuration

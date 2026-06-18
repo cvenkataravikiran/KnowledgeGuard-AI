@@ -11,6 +11,13 @@ def show():
     st.title("💬 AI Knowledge Assistant")
     st.markdown("Ask questions about your organizational knowledge")
     
+    # Check if AI is available
+    import config
+    if not config.GROQ_API_KEY:
+        st.error("⚠️ AI Assistant is not available. Please configure GROQ_API_KEY in Streamlit Cloud secrets (Settings → Secrets) or in your .env file.")
+        st.info("Get your free API key at: https://console.groq.com")
+        st.stop()
+    
     # Initialize chat history in session state
     if "messages" not in st.session_state:
         st.session_state.messages = []

@@ -201,6 +201,35 @@ python setup_app.py
   - "What documentation is missing?"
 - Get answers with source citations
 
+## 🚀 Deployment
+
+### **Streamlit Cloud Deployment**
+
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "Deploy to Streamlit Cloud"
+   git push origin main
+   ```
+
+2. **Deploy on Streamlit Cloud**
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Click "New app"
+   - Select your repository
+   - Set main file: `app.py`
+   - Click "Deploy"
+
+3. **Configure Secrets**
+   - In Streamlit Cloud, go to your app
+   - Click "Settings" → "Secrets"
+   - Add your GROQ API key:
+   ```toml
+   GROQ_API_KEY = "your-api-key-here"
+   ```
+   - Save and restart the app
+
+**Get your free Groq API key:** [console.groq.com](https://console.groq.com)
+
 
 ## 🧪 Testing
 

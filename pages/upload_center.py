@@ -16,6 +16,11 @@ def show():
     st.title("📤 Document Upload Center")
     st.markdown("Upload company documents for AI analysis and knowledge extraction")
     
+    # Check if AI is available
+    import config
+    if not config.GROQ_API_KEY:
+        st.warning("⚠️ GROQ_API_KEY not configured. Documents will be uploaded but AI entity extraction will be limited. Configure the API key in Settings → Secrets for full functionality.")
+    
     # Upload section
     st.subheader("Upload New Documents")
     
