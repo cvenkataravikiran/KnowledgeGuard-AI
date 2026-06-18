@@ -17,90 +17,115 @@ class KnowledgeService:
     @staticmethod
     def sync_employees(db: Session, user_id: int):
         """Sync employees from extracted entities for a specific user"""
-        # Get all employee entities for the user's documents
-        employee_entities = db.query(KnowledgeEntity).join(
-            Document, KnowledgeEntity.document_id == Document.id
-        ).filter(
-            KnowledgeEntity.entity_type == "employees",
-            Document.uploaded_by == user_id
-        ).all()
-        
-        # Group by employee name
-        employee_mentions = defaultdict(list)
-        for entity in employee_entities:
-            employee_mentions[entity.entity_name].append(entity)
-        
-        # Create or update employee records
-        for employee_name, entities in employee_mentions.items():
-            employee = db.query(Employee).filter(
-                Employee.name == employee_name,
-                Employee.user_id == user_id
-            ).first()
+        try:
+            # Get all employee entities for the user's documents
+            employee_entities = db.query(KnowledgeEntity).join(
+                Document, KnowledgeEntity.document_id == Document.id
+            ).filter(
+                KnowledgeEntity.entity_type == "employees",
+                Document.uploaded_by == user_id
+            ).all()
             
-            if not employee:
-                employee = Employee(name=employee_name, user_id=user_id)
-                db.add(employee)
+            if not employee_entities:
+                return
             
-            # Update document count
-            unique_docs = set(e.document_id for e in entities)
-            employee.document_count = len(unique_docs)
-        
-        db.commit()
+            # Group by employee name
+            employee_mentions = defaultdict(list)
+            for entity in employee_entities:
+                employee_mentions[entity.entity_name].append(entity)
+            
+            # Create or update employee records
+            for employee_name, entities in employee_mentions.items():
+                employee = db.query(Employee).filter(
+                    Employee.name == employee_name,
+                    Employee.user_id == user_id
+                ).first()
+                
+                if not employee:
+                    employee = Employee(name=employee_name, user_id=user_id)
+                    db.add(employee)
+                
+                # Update document count
+                unique_docs = set(e.document_id for e in entities)
+                employee.document_count = len(unique_docs)
+            
+            db.commit()
+        except Exception as e:
+            print(f"Error in sync_employees: {str(e)}")
+            db.rollback()
     
     @staticmethod
     def sync_systems(db: Session, user_id: int):
         """Sync systems from extracted entities for a specific user"""
-        system_entities = db.query(KnowledgeEntity).join(
-            Document, KnowledgeEntity.document_id == Document.id
-        ).filter(
-            KnowledgeEntity.entity_type == "systems",
-            Document.uploaded_by == user_id
-        ).all()
-        
-        system_mentions = defaultdict(list)
-        for entity in system_entities:
-            system_mentions[entity.entity_name].append(entity)
-        
-        for system_name, entities in system_mentions.items():
-            system = db.query(System).filter(
-                System.name == system_name,
-                System.user_id == user_id
-            ).first()
+        try:
+            system_entities = db.query(KnowledgeEntity).join(
+                Document, KnowledgeEntity.document_id == Document.id
+            ).filter(
+                KnowledgeEntity.entity_type == "systems",
+                Document.uploaded_by == user_id
+            ).all()
             
-            if not system:
-                system = System(name=system_name, user_id=user_id)
-                db.add(system)
+            if not system_entities:
+                return
             
-            system.mention_count = len(entities)
-            unique_docs = set(e.document_id for e in entities)
-            system.document_count = len(unique_docs)
-        
-        db.commit()
+            system_mentions = defaultdict(list)
+            for entity in system_entities:
+                system_mentions[entity.entity_name].append(entity)
+            
+            for system_name, entities in system_mentions.items():
+                system = db.query(System).filter(
+                    System.name == system_name,
+                    System.user_id == user_id
+                ).first()
+                
+                if not system:
+                    system = System(name=system_name, user_id=user_id)
+                    db.add(system)
+                
+                system.mention_count = len(entities)
+                unique_docs = set(e.document_id for e in entities)
+                system.document_count = len(unique_docs)
+            
+            db.commit()
+        except Exception as e:
+            print(f"Error in sync_systems: {str(e)}")
+            db.rollback()
     
     @staticmethod
     def sync_projects(db: Session, user_id: int):
         """Sync projects from extracted entities for a specific user"""
-        project_entities = db.query(KnowledgeEntity).join(
-            Document, KnowledgeEntity.document_id == Document.id
-        ).filter(
-            KnowledgeEntity.entity_type == "projects",
-            Document.uploaded_by == user_id
-        ).all()
-        
-        project_mentions = defaultdict(list)
-        for entity in project_entities:
-            project_mentions[entity.entity_name].append(entity)
-        
-        for project_name, entities in project_mentions.items():
-            project = db.query(Project).filter(
-                Project.name == project_name,
-                Project.user_id == user_id
-            ).first()
+        try:
+            project_entities = db.query(KnowledgeEntity).join(
+                Document, KnowledgeEntity.document_id == Document.id
+            ).filter(
+                KnowledgeEntity.entity_type == "projects",
+                Document.uploaded_by == user_id
+            ).all()
             
-            if not project:
-                project = Project(name=project_name, user_id=user_id)
-                db.add(project)
+            if not project_entities:
+                return
             
+            project_mentions = defaultdict(list)
+            for entity in project_entities:
+                project_mentions[entity.entity_name].append(entity)
+            
+            for project_name, entities in project_mentions.items():
+                project = db.query(Project).filter(
+                    Project.name == project_name,
+                    Project.user_id == user_id
+                ).first()
+                
+                if not project:
+                    project = Project(name=project_name, user_id=user_id)
+                    db.add(project)
+                
+                unique_docs = set(e.document_id for e in entities)
+                project.document_count = len(unique_docs)
+            
+            db.commit()
+        except Exception as e:
+            print(f"Error in sync_projects: {str(e)}")
+            db.rollback()
             unique_docs = set(e.document_id for e in entities)
             project.document_count = len(unique_docs)
         
@@ -320,34 +345,39 @@ class KnowledgeService:
     @staticmethod
     def sync_mappings(db: Session, user_id: int):
         """Sync employee mappings from entity co-occurrences in documents for a specific user"""
-        # Delete existing mappings for this user to rebuild fresh
-        db.query(EmployeeMapping).filter(EmployeeMapping.user_id == user_id).delete()
-        
-        # Get all processed documents for this user
-        documents = db.query(Document).filter(
-            Document.is_processed == True,
-            Document.uploaded_by == user_id
-        ).all()
-        
-        for doc in documents:
-            # Get all entities for this document
-            entities = db.query(KnowledgeEntity).filter(
-                KnowledgeEntity.document_id == doc.id
+        try:
+            # Delete existing mappings for this user to rebuild fresh
+            db.query(EmployeeMapping).filter(EmployeeMapping.user_id == user_id).delete()
+            
+            # Get all processed documents for this user
+            documents = db.query(Document).filter(
+                Document.is_processed == True,
+                Document.uploaded_by == user_id
             ).all()
             
-            # Separate employees and other targets
-            employees = [e for e in entities if e.entity_type == "employees"]
-            targets = [e for e in entities if e.entity_type in ["systems", "projects", "processes"]]
+            if not documents:
+                db.commit()
+                return
             
-            if not employees or not targets:
-                continue
+            for doc in documents:
+                # Get all entities for this document
+                entities = db.query(KnowledgeEntity).filter(
+                    KnowledgeEntity.document_id == doc.id
+                ).all()
                 
-            ENTITY_TO_MAPPING_TYPE = {
-                "systems": "system",
-                "projects": "project",
-                "processes": "process"
-            }
-            
+                # Separate employees and other targets
+                employees = [e for e in entities if e.entity_type == "employees"]
+                targets = [e for e in entities if e.entity_type in ["systems", "projects", "processes"]]
+                
+                if not employees or not targets:
+                    continue
+                    
+                ENTITY_TO_MAPPING_TYPE = {
+                    "systems": "system",
+                    "projects": "project",
+                    "processes": "process"
+                }
+                
             for emp_entity in employees:
                 # Find the employee record by name
                 employee = db.query(Employee).filter(
@@ -394,8 +424,11 @@ class KnowledgeService:
                         mapping.strength = 1.0
                     else:
                         mapping.strength = min(1.0, 0.5 + (len(evidence) * 0.1))
-        
-        db.commit()
+            
+            db.commit()
+        except Exception as e:
+            print(f"Error in sync_mappings: {str(e)}")
+            db.rollback()
     
     @staticmethod
     def get_knowledge_stats(db: Session, user_id: int) -> Dict:
