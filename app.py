@@ -17,12 +17,6 @@ st.set_page_config(
 # Initialize database
 try:
     init_db()
-    
-    # Show data persistence warning on Streamlit Cloud
-    if config.IS_STREAMLIT_CLOUD:
-        if 'shown_persistence_warning' not in st.session_state:
-            st.info("ℹ️ Note: Data is stored in temporary storage and will be cleared when the app restarts. For production use, consider using a persistent database.")
-            st.session_state.shown_persistence_warning = True
 except Exception as e:
     st.error(f"❌ Database initialization failed: {str(e)}")
     st.stop()
