@@ -28,11 +28,27 @@ except:
 # Base Directory
 BASE_DIR = Path(__file__).resolve().parent
 
+# Detect Streamlit Cloud environment
+IS_STREAMLIT_CLOUD = os.getenv("STREAMLIT_RUNTIME_ENV") == "cloud" or os.path.exists("/mount/src")
+
+# Set data directory based on environment
+if IS_STREAMLIT_CLOUD:
+    # Use /tmp for writable storage on Streamlit Cloud
+    DATA_DIR = Path("/tmp/knowledgeguard_data")
+else:
+    DATA_DIR = BASE_DIR
+
+# Ensure data directory exists
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 # API Configuration
 GROQ_MODEL = "llama-3.3-70b-versatile"  # Updated to current model
 
 # Database Configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./knowledgeguard.db")
+if IS_STREAMLIT_CLOUD:
+    DATABASE_URL = f"sqlite:///{DATA_DIR}/knowledgeguard.db"
+else:
+    DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/knowledgeguard.db")
 
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key-in-production")
@@ -45,20 +61,20 @@ APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Upload Settings
-UPLOAD_DIR = BASE_DIR / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = DATA_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "100"))
 ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".pdf", ".docx", ".txt", ".md"}
 
 # Backup Settings
-BACKUP_DIR = BASE_DIR / "backups"
-BACKUP_DIR.mkdir(exist_ok=True)
+BACKUP_DIR = DATA_DIR / "backups"
+BACKUP_DIR.mkdir(exist_ok=True, parents=True)
 BACKUP_ENABLED = os.getenv("BACKUP_ENABLED", "true").lower() == "true"
 BACKUP_INTERVAL_HOURS = int(os.getenv("BACKUP_INTERVAL_HOURS", "24"))
 
 # FAISS Settings
-FAISS_INDEX_DIR = BASE_DIR / "faiss_index"
-FAISS_INDEX_DIR.mkdir(exist_ok=True)
+FAISS_INDEX_DIR = DATA_DIR / "faiss_index"
+FAISS_INDEX_DIR.mkdir(exist_ok=True, parents=True)
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIMENSION = 384
 CHUNK_SIZE = 1000
@@ -73,6 +89,6 @@ RISK_THRESHOLDS = {
 }
 
 # Logging
-LOG_DIR = BASE_DIR / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+LOG_DIR = DATA_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True, parents=True)
 LOG_FILE = LOG_DIR / "app.log"

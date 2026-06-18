@@ -230,6 +230,14 @@ python setup_app.py
 
 **Get your free Groq API key:** [console.groq.com](https://console.groq.com)
 
+**⚠️ Important Note on Data Persistence:**
+- Streamlit Cloud uses temporary storage (`/tmp` directory)
+- **Data will be cleared when the app restarts** (sleep/wake, redeployment)
+- For production use with permanent data, consider:
+  - Using a cloud database (PostgreSQL on Heroku/AWS/Azure)
+  - Connecting to external storage services
+  - Deploying on your own infrastructure
+
 
 ## 🧪 Testing
 

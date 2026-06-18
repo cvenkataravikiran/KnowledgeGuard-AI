@@ -90,7 +90,8 @@ def show():
                                     entity_groups[entity.entity_type].append(entity.entity_name)
                                 
                                 for entity_type, names in entity_groups.items():
-                                    st.write(f"- **{entity_type.title()}:** {', '.join(set(names)[:5])}")
+                                    unique_names = list(set(names))[:5]
+                                    st.write(f"- **{entity_type.title()}:** {', '.join(unique_names)}")
                         
                         with col2:
                             st.write(f"**Status:** {'✅ Processed' if doc.is_processed else '⏳ Processing'}")

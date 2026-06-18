@@ -40,7 +40,19 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """Initialize database tables"""
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Ensure data directory exists
+        db_path = config.DATABASE_URL.replace("sqlite:///", "")
+        db_dir = os.path.dirname(db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+        
+        # Create all tables
+        Base.metadata.create_all(bind=engine)
+        print(f"✅ Database initialized at: {db_path}")
+    except Exception as e:
+        print(f"⚠️ Database initialization error: {str(e)}")
+        raise
 
 
 def get_db() -> Session:
@@ -71,6 +83,7 @@ def backup_database(backup_path: str = None):
     """Create database backup"""
     import shutil
     from datetime import datetime
+    from pathlib import Path
     
     if backup_path is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -78,30 +91,45 @@ def backup_database(backup_path: str = None):
     
     # Get database file path
     db_path = config.DATABASE_URL.replace("sqlite:///", "")
-    if db_path.startswith("./"):
-        db_path = config.BASE_DIR / db_path[2:]
+    db_path = Path(db_path)
     
-    # Copy database file
-    shutil.copy2(db_path, backup_path)
-    print(f"✅ Database backed up to: {backup_path}")
-    return backup_path
+    # Check if database file exists
+    if not db_path.exists():
+        print(f"⚠️ Database file not found: {db_path}")
+        return None
+    
+    # Ensure backup directory exists
+    config.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        # Copy database file
+        shutil.copy2(db_path, backup_path)
+        print(f"✅ Database backed up to: {backup_path}")
+        return backup_path
+    except Exception as e:
+        print(f"❌ Backup failed: {str(e)}")
+        return None
 
 
 def restore_database(backup_path: str):
     """Restore database from backup"""
     import shutil
+    from pathlib import Path
     
     # Get database file path
     db_path = config.DATABASE_URL.replace("sqlite:///", "")
-    if db_path.startswith("./"):
-        db_path = config.BASE_DIR / db_path[2:]
+    db_path = Path(db_path)
     
     # Close all connections
     engine.dispose()
     
-    # Restore backup
-    shutil.copy2(backup_path, db_path)
-    print(f"✅ Database restored from: {backup_path}")
+    try:
+        # Restore backup
+        shutil.copy2(backup_path, db_path)
+        print(f"✅ Database restored from: {backup_path}")
+    except Exception as e:
+        print(f"❌ Restore failed: {str(e)}")
+        raise
 
 
 def optimize_database():
